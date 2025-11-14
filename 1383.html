@@ -3,148 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محاضرات المدرسين - منصة 1383 🔥</title>
+    <title>اشترك الآن | منصة 1383 التعليمية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* ستايل يليق بالمنصة */
+        :root {
+            --primary-color: #007bff; /* أزرق أساسي */
+            --secondary-color: #28a745; /* أخضر للإنجاز */
+            --text-color: #333;
+            --bg-color: #f8f9fa; /* خلفية فاتحة */
+        }
+        
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #1e1e1e; /* خلفية غامقة عشان  */
-            color: #ffffff; /* خط أبيض عشان الرؤية تبقى واضحة */
-            line-height: 1.6;
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
             text-align: right;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: #2a2a2a;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5); /* شادو ناري */
-            border-right: 5px solid #ff0000;
-        }
-        h1 {
-            color: #ff0000; /* أحمر ناري للمانشيت */
-            border-bottom: 3px solid #ff0000;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            font-size: 2.5em;
-        }
-        h2 {
-            color: #00ff99; /* أخضر فاقع للمميزات */
-            margin-top: 30px;
-        }
-        p, ul {
-            font-size: 1.1em;
-            margin-bottom: 15px;
-        }
-        .price {
-            background-color: #ff0000;
-            color: #ffffff;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-top: 30px;
-        }
-        .payment-details {
-            background-color: #333333;
-            padding: 20px;
-            border-radius: 5px;
-            margin-top: 20px;
-            border-left: 3px dashed #00ff99;
-        }
-        .telegram-link a {
-            color: #00ff99;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        .telegram-link a:hover {
-            text-decoration: underline;
-        }
-        .feature-list li {
-            margin-bottom: 10px;
-            padding-right: 15px;
-            position: relative;
-        }
-        .feature-list li::before {
-            content: "✅"; /* علامة صح جريئة */
-            position: absolute;
-            right: 0;
-            top: 0;
+            line-height: 1.8;
         }
 
-        /* ستايل زر التحميل */
-        #download-btn {
-            display: block;
-            width: 90%;
-            margin: 20px auto 0;
-            padding: 15px;
-            background-color: #007bff; /* أزرق جامد */
-            color: white;
-            text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
-        #download-btn:hover {
-            background-color: #0056b3;
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 10px;
+            border-bottom: 3px solid var(--secondary-color);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .price-section {
+            background-color: #e2f0fb;
+            border: 2px solid var(--primary-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .price-section p {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .price-section strong {
+            color: #dc3545; /* أحمر للتأكيد */
+            font-size: 1.8em;
+            display: block;
+            margin: 10px 0;
+        }
+
+        .subscription-details {
+            font-size: 1.1em;
+            margin-bottom: 25px;
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            border-right: 5px solid #ffc107;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            font-weight: 700;
+            margin-top: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .teachers-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 15px;
+        }
+
+        .teachers-list li {
+            background: #e9ecef;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .subject {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-left: 10px;
+            flex-shrink: 0;
+            width: 100px; /* لتنظيم شكل القائمة */
+        }
+        
+        .names {
+            flex-grow: 1;
+            text-align: left;
+        }
+        
+        .note {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 30px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .telegram-link {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .telegram-link a {
+            display: inline-block;
+            background-color: #0088cc; /* لون تيليجرام */
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+
+        .telegram-link a:hover {
+            background-color: #005a8d;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <p style="font-size: 1.2em;">تليجرام: <a href="https://t.me/No_Sar" target="_blank">@No_Sar</a></p>
-        <br>
-        <h1>🚨 موقع 1383- كل المحاضرات في إيدك وبسعر خرافي! 🚨</h1>
-
-        <p> حتى انا عيني وجعتني من شاشة الفون الصغيرة بسبب ان كلها ابلكيشنات اندرويد </p>
-
-        <h2>📚 إيه اللي هتلاقيه عندنا؟</h2>
-        <p>ده مش مجرد موقع، دي مكتبة كاملة للمحاضرات:</p>
-        <ul>
-            <li>**محاضرات المدرسين :** كل اللي بتدور عليه موجود دلوقتي.</li>
-            <li>**قريباً:** سيتم إضافة المواد الأدبية عشان نقفل اللعبة كلها.</li>
-            <li>**كويزات ومراجعات:** عشان تدخل الامتحان وأنت ضامن الدرجة.</li>
-        </ul>
-
-        <h2>🔥 الميزة القاتلة - افتح من أي حتة!</h2>
-        <ul class="feature-list">
-            <li>**شغال على أي جهاز:** سواء معاك **تابلت المدرسة (أثناء وجوده في المنظومة)**، كمبيوتر في البيت، أو حتى موبايلك العادي، الموقع هيفتح معاك زي الفل.</li>
-            <li>**ولا ملي مساحة:** الموقع ده مش تطبيق أندرويد تقيل، ده مجرد صفحة ويب، يعني **مش محتاج أي مساحة** من تليفونك، عكس كل الأماكن التانية.</li>
-        </ul>
-
-        <div class="price">
-            **💥 كل ده وبكام؟** الاشتراك الشهري بس بـ **٥٠ جنيه مصري**!
+        <header>
+            <h1>🔥 اشترك الآن في منصة 1383 التعليمية 🔥</h1>
+        </header>
+        
+        <div class="price-section">
+            <p>كل هذا، بجميع المواد والمدرسين الأساطير، فقط بـ</p>
+            <strong>100 جنيه شهرياً!</strong>
         </div>
 
-        <div class="payment-details">
-            <h2>💸 طريقة الاشتراك السريعة:</h2>
-            <p><strong>١. السعر:</strong> ٥٠ جنيهاً مصرياً شهرياً.</p>
-            <p><strong>٢. طريقة الدفع:</strong> إرسال المبلغ عبر **اتصالات كاش** على الرقم:</p>
-            <p style="font-size: 1.3em; font-weight: bold; color: #ff0000;">01154015113</p>
-            <p><strong>٣. بعد التحويل:</strong> لازم تبعتلنا:</p>
-            <ul style="list-style-type: none; padding-right: 0;">
-                <li>⬅️ **صورة التحويل** واضحة.</li>
-                <li>⬅️ **رقم الهاتف** اللي حولت منه.</li>
-                <li>⬅️ **كودك السري** (لو معاكش كود ابعت اسمك).</li>
-            </ul>
-            <p class="telegram-link"><strong>٤. التواصل:</strong> كل ده تبعتهولنا بسرعة على تيليجرام عشان تفعيل الكود:</p>
-            <p style="font-size: 1.2em;">تليجرام: <a href="https://t.me/No_Sar" target="_blank">@No_Sar</a></p>
-            
-       <h3> <button class="action-card" id="contactBtn" style="background:transparent; color:var(--yellow-card); border:1px solid var(--yellow-card); box-shadow:none; margin-top: 20px;" onclick="window.location.href='imgg.html'">صور للموقع</button>
-</h3>
+        <div class="subscription-details">
+            <p><strong>طريقة الاشتراك:</strong></p>
+            <p>تحويل <strong>100 جنيه</strong> عبر **اتصالات كاش** على الرقم التالي:</p>
+            <p style="font-size: 1.5em; color: #dc3545;">
+                <span style="border: 2px dashed #dc3545; padding: 5px 10px; border-radius: 5px;">01154015113</span>
+            </p>
+            <p> بعد التحويل، تواصل معنا لتأكيد اشتراكك. اسمك وشعبتك وسكرين التحويل والرقم المحول منه ولو معاك كود هتدينا كودك القديم</p>
         </div>
+
+        <h2>👑 أساتذة المنصة المتاحون 👑</h2>
+
+        <ul class="teachers-list">
+            <li>
+                <span class="subject">اللغة العربية:</span>
+                <span class="names">محمد صلاح، رضا فاروق</span>
+            </li>
+            <li>
+                <span class="subject">اللغة الإنجليزية:</span>
+                <span class="names">مستر وائل ميلاد، شريف المصري، مي مجدي، عبقري لغة، انجلشاوي، عبدالحميد حامد</span>
+            </li>
+            <li>
+                <span class="subject">الرياضيات:</span>
+                <span class="names">أحمد عصام، لطفي زهران</span>
+            </li>
+            <li>
+                <span class="subject">الأحياء:</span>
+                <span class="names">مستر سامح أيمن، جيو ماجد، أحمد رضوان، محمد أيمن، أحمد الجوهري</span>
+            </li>
+            <li>
+                <span class="subject">الكيمياء:</span>
+                <span class="names">عبدالله حبشي، عمرو الصيفي، جون جهبذ، خالد صقر، عبدالجواد</span>
+            </li>
+            <li>
+                <span class="subject">الفيزياء:</span>
+                <span class="names">مستر حسام خليل، عبد المعبود، الدكتور كيرلس، محمود مجدي</span>
+            </li>
+        </ul>
+        
+        <div class="note">
+            <p>
+                **ملاحظة هامة:** موقعنا يمكنك فتحه على أي جهاز، حتى لو كان تابلت ثانوي بداخل المنظومة أو كمبيوتر. 💻
+            </p>
+        </div>
+
+        <div class="telegram-link">
+            <p>انضم لقناتنا على التيليجرام عشان متفوتكش أي حاجة:</p>
+            <a href="https://t.me/lectures1383" target="_blank">
+                اشترك في قناة التيليجرام
+            </a>
+        </div>
+
     </div>
-   
-    <script>
-       
-    </script>
+
 </body>
 </html>
