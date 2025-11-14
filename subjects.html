@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>المواد - منصة 1383</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script>
+    // 🚨 1. Configuration - لازم تحط نفس الإعدادات اللي في index.html
+    const firebaseConfig = {
+      apiKey: "AIzaSyBK6FZF3LW83qaUHBKYTfiVd2Ozrd1Rf2g",
+      authDomain: "thanawy-1383.firebaseapp.com",
+      databaseURL: "https://thanawy-1383-default-rtdb.firebaseio.com",
+      projectId: "thanawy-1383",
+      storageBucket: "thanawy-1383.firebasestorage.app",
+      messagingSenderId: "1026664406457",
+      appId: "1:1026664406457:web:87d71f7e41bef36ba0aa68",
+      measurementId: "G-J5R2EFM2D0"
+    };
+
+    // 🚨 2. عنوان صفحة الدخول اللي هترجع ليها
+    const LOGIN_PAGE_URL = "https://1383ss.vercel.app"; 
+
+    // دالة التوجيه لصفحة الدخول
+    function redirectToLogin(reason) {
+        // بنستخدم replace عشان الصفحة دي متتسجلش في الـ Browser History
+        window.location.replace(LOGIN_PAGE_URL);
+    }
+
+    // *******************************************************************
+
+    const activeCode = localStorage.getItem('activeCode');
+    const localDeviceId = localStorage.getItem('localDeviceId');
+
+    // 3. التحقق المبدئي: لو مفيش كود أو Device ID متسجل محليًا
+    if (!activeCode || !localDeviceId) {
+        redirectToLogin("Missing local code or Device ID.");
+    } else {
+        // 4. التحقق من Firebase
+        
+        if (typeof firebase === 'undefined' || firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        async function verifyCodeOnServer(code) {
+            try {
+                // بنحاول نقرا بيانات الكود ده من الداتا بيز مرة واحدة بس
+                const snapshot = await db.ref('approvedStudents/' + code).once('value');
+                const data = snapshot.val();
+                const now = Date.now();
+
+                // أ. الكود مش موجود
+                if (!data) {
+                    redirectToLogin("Code not found.");
+                    return;
+                }
+
+                // ب. الكود منتهي الصلاحية
+                if (data.expiry <= now) {
+                    redirectToLogin("Code is expired.");
+                    return;
+                }
+                
+                // ج. الكود مُعطّل من الإدارة
+                if (data.isBlocked === true) {
+                    redirectToLogin("Code is blocked.");
+                    return;
+                }
+                
+                // د. الكود مفعل على جهاز تاني
+                const storedDeviceId = data.deviceId;
+                
+                if (!storedDeviceId || storedDeviceId !== localDeviceId) {
+                    // عشان الأمان، بنمسح الداتا المحلية عشان الطالب يرجع يسجل دخول تاني
+                    localStorage.removeItem('activeCode');
+                    localStorage.removeItem('localDeviceId');
+                    redirectToLogin("Code linked to another device.");
+                    return;
+                }
+
+                // لو وصل لحد هنا يبقى: ✅ الكود سليم ومفعل على نفس الجهاز
+              // 🚨 السطر الجديد: عرض الكود في الشريط السفلي
+              //document.getElementById('displayActivationCodeBottom').textContent = code;
+                // خلاص، سيبه يكمل ويشوف المحتوى
+
+            } catch (error) {
+                // لو فشل الاتصال بالخادم، الأمان يقتضي إننا نرجعه لصفحة الدخول
+                // عشان منعاً للدخول غير المصرح به لو الـ Server كان واقع
+                redirectToLogin("Verification server error.");
+            }
+        }
+
+        // إبدأ عملية التحقق
+        verifyCodeOnServer(activeCode);
+    }
+</script>
+  
+<style>
+  /*
+* شاتي - ستايل الـ Dark Mode باللون الأزرق
+*/
+@import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: #1d0939;
+  color: #fff;
+  padding: 80px 15px 30px;
+  margin: 0;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ===== الشريط العلوي ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111;
+  padding: 10px 15px;
+  color: white;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1000;
+  transition: background 0.3s, color 0.3s;
+}
+
+.menu-btn {
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 14px;
+  /* 🔵 اللون الأزرق بدلاً من الأحمر/الوردي */
+  color: #3498db; 
+}
+
+.icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icons img {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.toggle-dark {
+  background: #fff;
+  border-radius: 12px;
+  width: 40px;
+  height: 20px;
+  position: relative;
+  cursor: pointer;
+}
+
+.toggle-dark::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: #111;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-dark.active::after {
+  left: 22px;
+  /* 🔵 أزرق فاتح أو أبيض للخلفية الفاتحة */
+  background: #00BFFF; 
+}
+
+/* ===== باقي التنسيقات ===== */
+h1 {
+  /* 🔵 اللون الأزرق */
+  color: #3498db; 
+  text-align: center;
+  font-size: 2.8rem;
+  margin-bottom: 40px;
+  /* 🔵 ظل أزرق */
+  text-shadow: 0 0 8px #3498db; 
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  max-width: 200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  /*grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));*/
+  gap: 20px;
+}
+
+li {
+  background: #1d0939;
+  border-radius: 16px;
+  padding: 20px 15px 30px;
+  cursor: pointer;
+  /* 🔵 ظل أزرق خفيف */
+  box-shadow: 0 2px 10px rgba(52, 152, 219, 0.15);
+  transition: background-color 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  user-select: none;
+  width: 100%;
+}
+
+li:hover {
+  /* 🔵 خلفية زرقاء على الماوس */
+  background: #3498db; 
+  color: #121212;
+  transform: translateY(-5px);
+  /* 🔵 ظل أزرق قوي */
+  box-shadow: 0 10px 30px rgba(52, 152, 219, 0.7); 
+}
+
+li:active {
+  transform: translateY(-3px);
+  /* 🔵 ظل أزرق متوسط */
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.5); 
+}
+
+.circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 80%;
+  background: #333;
+  overflow: hidden;
+  margin-bottom: 18px;
+  /* 🔵 ظل أزرق على الدائرة */
+  box-shadow: 0 0 10px rgba(52, 152, 219, 0.4); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+li span {
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+li.loading {
+  cursor: default;
+  color: #aaa;
+  background: transparent;
+  box-shadow: none;
+  font-weight: 400;
+  font-size: 1rem;
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
+li.loading::after {
+  content: "";
+  width: 28px;
+  height: 28px;
+  /* 🔵 حدود زرقاء للـ Loader */
+  border: 3px solid #3498db; 
+  border-top: 3px solid transparent;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 10px;
+  vertical-align: middle;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== وضع الفاتح (Light Mode) ===== */
+body.light-mode {
+  background: #f5f5f5;
+  color: #000;
+}
+body.light-mode .topbar {
+  background: #fff;
+  color: #000;
+}
+body.light-mode li {
+  background: #fff;
+  color: #000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+/* ===== Toast إشعار ===== */
+#toast {
+  visibility: hidden;
+  min-width: 260px;
+  background: #1e1e1e;
+  /* 🔵 لون أزرق للإشعار */
+  color: #3498db; 
+  text-align: center;
+  border-radius: 12px;
+  padding: 14px;
+  position: fixed;
+  z-index: 2000;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  opacity: 0;
+  transition: opacity 0.5s, bottom 0.5s;
+}
+#toast.show {
+  visibility: visible;
+  opacity: 1;
+  bottom: 50px;
+}
+body.light-mode #toast {
+  background: #fff;
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ✅ زر البروفايل العائم */
+.profile-float-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #222;
+  /* 🔵 حدود زرقاء */
+  border: 2px solid #3498db; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  transition: 0.3s;
+  z-index: 1200;
+}
+.profile-float-btn:hover {
+  transform: scale(1.1);
+  /* 🔵 ظل أزرق على الماوس */
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6); 
+  /* 🔵 خلفية زرقاء على الماوس */
+  background: #3498db; 
+}
+.profile-float-btn img {
+  width: 28px;
+  height: 28px;
+}
+body.light-mode .profile-float-btn {
+  background: #fff;
+  border: 2px solid #333;
+}
+body.light-mode .profile-float-btn:hover {
+  background: #333;
+  /* 🔵 حدود زرقاء في الوضع الفاتح */
+  border-color: #3498db; 
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+  }
+  ul {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px;
+    max-width: 100%;
+  }
+  .circle {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 14px;
+  }
+  li span {
+    font-size: 1rem;
+  }
+  .profile-float-btn {
+    width: 45px;
+    height: 45px;
+    bottom: 15px;
+    left: 15px;
+  }
+  .profile-float-btn img {
+    width: 22px;
+    height: 22px;
+  }
+}
+    .activation-info-container {
+        position: fixed; /* عشان تبقى ثابتة في الشاشة */
+        top: 20px;
+        right: 20px; /* عشان تكون على اليمين فوق */
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        border-radius: 10px;
+        border: 1px solid var(--yellow-card);
+        padding: 15px;
+        max-width: 200px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1000; /* عشان تبقى فوق أي محتوى تاني */
+    }
+
+    .info-label {
+        color: var(--gray-text);
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .activation-code-box {
+        background: var(--darker-bg);
+        color: var(--green-active); /* عشان يكون مميز وجذاب */
+        padding: 8px;
+        border-radius: 6px;
+        font-family: monospace; /* عشان شكل الأرقام يكون واضح */
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        letter-spacing: 2px;
+        border: 1px solid var(--green-active);
+    }
+
+    .return-btn {
+        background: var(--yellow-card) !important;
+        color: var(--black-bg) !important;
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 5px 15px var(--yellow-shadow) !important;
+        transition: transform 0.2s ease;
+    }
+    .return-btn:hover {
+        transform: scale(1.05);
+    }
+.fixed-bottom-bar {
+    position: fixed; /* عشان يفضل ثابت حتى لو الطالب نزل تحت */
+    bottom: 0;      /* يلزق في أسفل الشاشة */
+    left: 0;        /* يغطي العرض كله */
+    width: 100%;
+    background: var(--black-bg); /* خلفية غامقة عشان اللون الأصفر يظهر */
+    border-top: 2px solid var(--yellow-card); /* خط أصفر شيك يفصل بينه وبين المحتوى */
+    color: var(--light-text);
+    text-align: center;
+    padding: 10px 0;
+    z-index: 999; /* عشان يكون فوق معظم العناصر */
+    display: flex; /* عشان نرتب العناصر جنب بعض */
+    justify-content: center;
+    align-items: center;
+    font-family: 'Tajawal', sans-serif;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.bottom-label {
+    color: var(--gray-text);
+    font-size: 16px;
+    font-weight: 500;
+    margin-left: 10px; /* مسافة بين النص والكود */
+}
+
+.bottom-code {
+    color: var(--green-active); /* لون أخضر عشان يلفت النظر */
+    font-size: 20px;
+    font-weight: 700;
+    font-family: monospace; /* عشان الكود يبان أوضح */
+    letter-spacing: 2px;
+}
+</style>
+</head>
+<body>
+
+  <!-- ✅ الشريط العلوي -->
+  <div class="topbar">
+    <div class="menu-btn">☰</div>
+    <div class="title">have been hacked by 1383</div>
+    <div class="icons">
+      <div class="toggle-dark" id="darkToggle"></div>
+      <!-- واتساب -->
+      <a href="" target="_blank">
+        <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp">
+      </a>
+      <!-- مشاركة -->
+      <img id="shareBtn" src="https://cdn-icons-png.flaticon.com/512/929/929610.png" alt="Share">
+      <!-- إشعارات -->
+      <img id="notifyBtn" src="https://cdn-icons-png.flaticon.com/512/1827/1827272.png" alt="Notification">
+    </div>
+  </div>
+
+  <!-- ✅ Toast -->
+  <div id="toast">الإشعارات هتتفعل قريبًا 🔔✨</div>
+
+  <h1>𝑺𝒖𝒃𝒋𝒆𝒄𝒕𝒔 𝒄𝒍𝒂𝒔𝒔 𝒐𝒇 𝟐𝟎𝟐𝟔</h1>
+  <ul id="subjects-list">
+    <li class="loading">⏳....𝑳𝒐𝒂𝒅𝒊𝒏𝒈</li>
+  </ul>
+
+  <!-- ✅ زر بروفايل عائم -->
+  <a href="profile.html" class="profile-float-btn">
+    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="بروفايل">
+  </a>
+
+<script>
+// ✅ Toast احترافية — نسخة واحدة فقط
+function showToast(message, type = "info") {
+  const toast = document.createElement("div");
+  toast.className = `custom-toast ${type}`;
+  toast.innerHTML = `<span>${message}</span>`;
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .custom-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 14px 22px;
+      border-radius: 14px;
+      font-family: "Cairo", sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      animation: slideIn 0.5s ease, fadeOut 0.5s ease 2.5s forwards;
+      z-index: 9999;
+    }
+    .custom-toast.info { background: linear-gradient(135deg,#3498db,#2980b9); }
+    .custom-toast.success { background: linear-gradient(135deg,#2ecc71,#27ae60); }
+    .custom-toast.error { background: linear-gradient(135deg,#e74c3c,#c0392b); }
+    @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateX(120%); } }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ✅ متغير لتتبع حالة التحقق
+window.authPassed = false;
+// ✅ التحقق المعدل: تخطي تسجيل الدخول والرجوع للصفحة الرئيسية
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // ⬅️ نعتبر إن التحقق نجح على طول عشان نتخطى الفحص
+  window.authPassed = true;
+  
+  // تشغيل حدث authReady عشان باقي الأكواد تشتغل
+  document.dispatchEvent(new Event("authReady")); 
+  
+  // ممكن تحطي رسالة بسيطة للتأكد، أو تلغي السطر دا لو مش عايزة إشعار يظهر
+  showToast("✅ تم تخطي التحقق والدخول بنجاح", "success"); 
+});
+</script>
+
+<script type="module">
+const subjectsList = document.getElementById('subjects-list');
+
+const subjectImages = {
+   "أحياء": "1.jpg",
+    "فيزياء": "2.jpg",
+    "كيمياء": "3.jpg",
+    "لغة عربية": "5.jpg",
+    "English": "6.jpg",
+    "جيولوجيا": "https://www2.0zz0.com/2025/11/03/22/343667596.jpg",
+    "الرياضيات": "4.jpg",
+    "ادبي": "https://www2.0zz0.com/2025/10/01/19/580067879.jpeg",
+  };
+async function loadSubjects() {
+  try {
+    // حمّل الملف JSON
+    const res = await fetch('coursatk_scraped_data.json');
+    const json = await res.json();
+
+    // حسب تركيب ملفك — غالبًا البيانات داخل data[]
+    const data = json.data || json;
+
+    // استخراج أسماء المواد
+    const subjects = new Set();
+    (data || []).forEach(year => {
+      (year.subjects || []).forEach(sub => {
+        subjects.add(sub.subject_name || sub.subjectName || sub.name);
+      });
+    });
+
+    subjectsList.innerHTML = '';
+
+    if (subjects.size === 0) {
+      subjectsList.innerHTML = '<li class="loading">⚠️ لا توجد مواد.</li>';
+      return;
+    }
+
+    [...subjects].sort().forEach(subject => {
+      const li = document.createElement('li');
+      const circle = document.createElement('div');
+      circle.className = 'circle';
+      const img = document.createElement('img');
+      img.src = subjectImages[subject] || 'https://img.icons8.com/ios-filled/100/ffd700/book.png';
+      circle.appendChild(img);
+      const span = document.createElement('span');
+      span.textContent = subject;
+      li.appendChild(circle);
+      li.appendChild(span);
+      li.onclick = () => window.location.href = `teachers.html?subject=${encodeURIComponent(subject)}`;
+      subjectsList.appendChild(li);
+    });
+
+    showToast("✅ تم تحميل المواد بنجاح");
+  } catch (err) {
+    subjectsList.innerHTML = `<li class="loading">❌ فشل تحميل البيانات</li>`;
+    console.error(err);
+  }
+}
+
+// 🟡 Toast
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.className = "show";
+  setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
+}
+
+// 🌓 وضع النهار/الليل
+const toggle = document.getElementById("darkToggle");
+toggle.addEventListener("click", () => {
+  toggle.classList.toggle("active");
+  document.body.classList.toggle("light-mode");
+});
+
+// 📤 زر المشاركة
+document.getElementById("shareBtn").addEventListener("click", async () => {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "تطبيق 1383",
+        text: "جرب تطبيق 1383 2026 📚✨",
+        url: window.location.href
+      });
+    } catch {
+      showToast("❌ تم إلغاء المشاركة");
+    }
+  } else {
+    showToast("المشاركة غير مدعومة في متصفحك 😢");
+  }
+});
+
+// 🔔 زر الإشعارات
+document.getElementById("notifyBtn").addEventListener("click", () => {
+  showToast("الإشعارات هتتفعل قريبًا 🔔✨");
+});
+// ** أضف الدالة دي مع باقي الـ JavaScript اللي في صفحة المحتوى **
+
+function redirectToHomePage() {
+    // العنوان اللي طلبتيه للرجوع
+    window.location.href = "https://1383ss.vercel.app";
+}
+
+// ** عدّل على دالة التحقق verifyCodeOnServer الموجودة عندك **
+async function verifyCodeOnServer(code) {
+    try {
+        // ... (كل كود التحقق زي ما هو) ...
+
+        // لو وصل لحد هنا يبقى: ✅ الكود سليم ومفعل على نفس الجهاز
+        
+        // 🚨 هنا هنضيف سطر عرض الكود في الخانة الجديدة
+        document.getElementById('displayActivationCode').textContent = code;
+        
+        // لو حابة تخفي الـ Loading Screen لو كنتي حاطة واحدة، ده مكانها
+        // console.log("Access granted. Code displayed."); 
+        
+    } catch (error) {
+        // ... (باقي الـ Error handling زي ما هو) ...
+    }
+}
+// 🚀 تشغيل تحميل المواد
+loadSubjects();
+</script>
+<a href="index.html" class="home-button">
+    الصفحة الرئيسية
+</a>
+</body>
+</body>
+</html>

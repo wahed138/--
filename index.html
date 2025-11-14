@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>تسجيل الدخول / تفعيل الجهاز</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root { /* ... الألوان والستايلات ... */
+            --black-bg: #1A1A2E; 
+            --darker-bg: #0F0F1B;
+            --yellow-card: #FFD700; 
+            --yellow-shadow: rgba(255, 215, 0, 0.4); 
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0B0;
+            --green-active: #00F5C4;
+            --red-error: #FF4F4F;
+            --pending: #ffb347;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg), var(--black-bg));
+            color: var(--light-text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .glass-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 50px 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: var(--yellow-card); margin-bottom: 25px; font-weight: 700; }
+        .action-card {
+            background: var(--yellow-card);
+            color: var(--black-bg);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px var(--yellow-shadow);
+            border: none;
+            width: 100%;
+            text-align: center;
+        }
+        .action-card:hover { transform: translateY(-3px); box-shadow: 0 12px 35px var(--yellow-shadow); }
+        .card-message { 
+            background: var(--darker-bg); 
+            padding: 15px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            font-size: 16px; 
+            font-weight: 500; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #loginForm input {
+            width: 100%; padding: 12px; margin: 10px 0; border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px; background: rgba(0, 0, 0, 0.3); color: var(--light-text); font-family: 'Tajawal', sans-serif; font-size: 18px;
+            text-align: center;
+        }
+        #loginForm button { 
+            background: var(--green-active); 
+            color: var(--black-bg); 
+            margin-top: 15px; 
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0, 245, 196, 0.4);
+        }
+        /* ** الستايلات الجديدة لخانة عرض الكود بالأعلى ** */
+.top-status-bar {
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    text-align: right;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between; /* عشان الزرار يكون على الطرف التاني */
+    align-items: center;
+    flex-wrap: wrap; 
+}
+
+.status-text {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.code-display {
+    color: var(--green-active); /* عشان يكون لافت للنظر */
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.clear-btn {
+    background: var(--red-error); /* زرار الحذف دايماً لونه أحمر */
+    color: var(--light-text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: 0.3s;
+    margin-top: 5px; /* عشان يبقى في مسافة لو نزل سطر */
+}
+.clear-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+    </style>
+</head>
+<body>
+    <div class="glass-container">
+        <div id="topCodeStatus" class="top-status-bar">
+        
+       
+        <h1>منصة 1383 التعليمية</h1>
+        </div>
+
+        <div id="statusMessage" class="card-message" style="color:var(--yellow-card);">
+            🔑 أدخل كود التفعيل للدخول
+        </div>
+        
+        <form id="loginForm">
+            <input type="text" id="activationCode" placeholder="كود التفعيل (6 أرقام)" pattern="\d{6}" maxlength="6" required>
+            <button type="submit" id="loginBtn" class="action-card">🚀 تفعيل ودخول</button>
+        </form>
+
+        <button class="action-card" id="contactBtn" style="background:transparent; color:var(--yellow-card); border:1px solid var(--yellow-card); box-shadow:none; margin-top: 20px;" onclick="window.location.href='https://sara1383sara.github.io/c/'">💬 راسلني</button>
+
+        <button class="action-card" id="contactBtn" style="background:transparent; color:var(--yellow-card); border:1px solid var(--yellow-card); box-shadow:none; margin-top: 20px;" onclick="window.location.href='https://t.me/ss1383ss'"> لينك القناة  (-_-)</button>
+        
+        <button class="action-card" id="contactBtn" style="background:transparent; color:var(--yellow-card); border:1px solid var(--yellow-card); box-shadow:none; margin-top: 20px;" onclick="window.location.href='https://t.me/No_Sar'">تيليجرام المطورة</button>
+        
+        <button class="action-card" id="contactBtn" style="background:transparent; color:var(--yellow-card); border:1px solid var(--yellow-card); box-shadow:none; margin-top: 20px;" onclick="window.location.href='1383.html'">دا موقع ايه  (-_-)</button>
+
+        
+    </div>
+
+    <script>
+        // 🚨 Configuration - لازم تحط الـ Configuration بتاعت مشروعك هنا
+        const firebaseConfig = {
+          apiKey: "AIzaSyBK6FZF3LW83qaUHBKYTfiVd2Ozrd1Rf2g",
+          authDomain: "thanawy-1383.firebaseapp.com",
+          databaseURL: "https://thanawy-1383-default-rtdb.firebaseio.com",
+          projectId: "thanawy-1383",
+          storageBucket: "thanawy-1383.firebasestorage.app",
+          messagingSenderId: "1026664406457",
+          appId: "1:1026664406457:web:87d71f7e41bef36ba0aa68",
+          measurementId: "G-J5R2EFM2D0"
+        };
+        
+        if (typeof firebase === 'undefined' || firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        const STATUS_MESSAGE = document.getElementById('statusMessage');
+        const LOGIN_FORM = document.getElementById('loginForm');
+        const LOGIN_BTN = document.getElementById('loginBtn');
+        const ACTIVATION_CODE_INPUT = document.getElementById('activationCode');
+
+        // **********************************************
+        // 🚨 الدوال الجديدة: توليد Device ID والتحقق من الكود
+        // **********************************************
+
+        // دالة توليد Device ID فريد للجهاز (هيكون كود طويل عشان فرصة التكرار تكون صفر)
+        function generateDeviceID() {
+             return 'DID-' + Math.random().toString(36).substring(2, 10).toUpperCase() + Date.now().toString(36);
+        }
+
+        // 1. استرجاع أو توليد Device ID للجهاز الحالي
+        let localDeviceId = localStorage.getItem('localDeviceId');
+        if (!localDeviceId) {
+            localDeviceId = generateDeviceID();
+            localStorage.setItem('localDeviceId', localDeviceId);
+        }
+        // ... (باقي الـ JavaScript بتاعك) ...
+
+// 💡 الدوال الجديدة: عرض وحذف كود التفعيل
+// 1. تعريف الكود اللي متخزن محلياً
+const activeCode = localStorage.getItem('activeCode');
+const codeStatusDiv = document.getElementById('topCodeStatus');
+
+// 2. دالة حذف الكود من الجهاز
+function clearLocalCode() {
+    localStorage.removeItem('activeCode');
+    localStorage.removeItem('localDeviceId');
+    localStorage.removeItem('approved'); // لو بتستخدم الـ Flag ده
+    
+    STATUS_MESSAGE.textContent = '✅ تم حذف الكود بنجاح. جاري إعادة تحميل الصفحة...';
+    STATUS_MESSAGE.style.color = 'var(--green-active)';
+    LOGIN_BTN.disabled = true;
+
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+// 3. عرض حالة الكود في الشريط العلوي
+if (activeCode) {
+    codeStatusDiv.innerHTML = `
+        <span class="status-text">كود تفعيلك الحالي: <span class="code-display">${activeCode}</span></span>
+        <button class="clear-btn" onclick="clearLocalCode()">حذف الكود من جهازك</button>
+    `;
+    
+    // 💡 نقطة مهمة: ممكن تعمل هنا توجيه تلقائي عشان الطالب ميسجلش دخوله تاني
+    // بس عشان طلبته، خليته يعرض الكود بس، لو عايز توجيه تلقائي شيل الـ Comment من تحت:
+    /*
+    STATUS_MESSAGE.textContent = '✅ كودك مُسجل. جاري الدخول...';
+    STATUS_MESSAGE.style.color = 'var(--green-active)';
+    setTimeout(() => {
+        window.location.href = 'subjects.html'; 
+    }, 500);
+    */
+
+} else {
+    codeStatusDiv.innerHTML = `<span class="status-text" style="color:var(--gray-text);">ليس لديك كود تفعيل مُحفوظ على هذا الجهاز.</span>`;
+}
+
+
+// ... (باقي الـ JavaScript بتاعك، زي الـ checkAndLogin function) ...
+
+        // 2. التحقق من الكود عند الضغط على زر الدخول
+        LOGIN_FORM.addEventListener('submit', (e) => {
+            e.preventDefault();
+            checkAndLogin();
+        });
+
+        async function checkAndLogin() {
+            const activationCode = ACTIVATION_CODE_INPUT.value.trim();
+            
+            if (activationCode.length !== 6 || isNaN(activationCode)) {
+                STATUS_MESSAGE.textContent = '❌ برجاء إدخال كود تفعيل صحيح مكون من 6 أرقام.';
+                STATUS_MESSAGE.style.color = 'var(--red-error)';
+                return;
+            }
+
+            LOGIN_BTN.disabled = true;
+            STATUS_MESSAGE.textContent = '⏳ جاري التحقق من كود التفعيل...';
+            STATUS_MESSAGE.style.color = 'var(--yellow-card)';
+
+            try {
+                // التحقق من حالة الكود في Firebase باستخدام الكود نفسه كـ Key
+                const snapshot = await db.ref('approvedStudents/' + activationCode).once('value');
+                const data = snapshot.val();
+                const now = Date.now();
+
+                if (!data) {
+                    STATUS_MESSAGE.textContent = '❌ كود التفعيل غير صحيح أو غير موجود.';
+                    STATUS_MESSAGE.style.color = 'var(--red-error)';
+                    return;
+                }
+
+                if (data.expiry <= now) {
+                    STATUS_MESSAGE.textContent = '❌ كود التفعيل الخاص بك منتهي الصلاحية.';
+                    STATUS_MESSAGE.style.color = 'var(--red-error)';
+                    // ممكن تحذف الكود المنتهي من Firebase هنا
+                    // db.ref('approvedStudents/' + activationCode).remove();
+                    return;
+                }
+                
+                if (data.isBlocked === true) {
+                    STATUS_MESSAGE.textContent = '❌ كود التفعيل الخاص بك مُعطّل من الإدارة.';
+                    STATUS_MESSAGE.style.color = 'var(--red-error)';
+                    return;
+                }
+
+
+                // 🚨 التحقق من شرط الجهاز الواحد 
+                const storedDeviceId = data.deviceId;
+
+                if (!storedDeviceId) {
+                    // الكود سليم وجهاز الطالب هو أول جهاز يسجل الدخول
+                    
+                    // 1. تحديث Firebase بكود الجهاز الحالي
+                    await db.ref('approvedStudents/' + activationCode + '/deviceId').set(localDeviceId);
+                    
+                    // 2. تخزين الكود في localStorage عشان صفحات التطبيق تعرفه
+                    localStorage.setItem('activeCode', activationCode);
+                    localStorage.setItem('approved', 'true');
+                    
+                    STATUS_MESSAGE.textContent = '✅ تم التفعيل بنجاح! جاري الدخول...';
+                    STATUS_MESSAGE.style.color = 'var(--green-active)';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'subjects.html'; // الانتقال للصفحة الرئيسية
+                    }, 1000);
+                    
+                } else if (storedDeviceId === localDeviceId) {
+                    // الكود سليم ومفعل بالفعل على نفس الجهاز
+                    
+                    localStorage.setItem('activeCode', activationCode);
+                    localStorage.setItem('approved', 'true');
+                    
+                    STATUS_MESSAGE.textContent = '✅ تم تسجيل الدخول بنجاح! جاري الدخول...';
+                    STATUS_MESSAGE.style.color = 'var(--green-active)';
+
+                    setTimeout(() => {
+                        window.location.href = 'subjects.html'; // الانتقال للصفحة الرئيسية
+                    }, 1000);
+
+                } else {
+                    // ❌ الكود سليم لكن مفعل على جهاز آخر
+                    STATUS_MESSAGE.textContent = '❌ هذا الكود مُفعل على جهاز آخر بالفعل.';
+                    STATUS_MESSAGE.style.color = 'var(--red-error)';
+                }
+
+            } catch (error) {
+                STATUS_MESSAGE.textContent = '❌ فشل الاتصال بالخادم. حاول مرة أخرى.';
+                STATUS_MESSAGE.style.color = 'var(--red-error)';
+                console.error("Firebase error:", error);
+            } finally {
+                LOGIN_BTN.disabled = false;
+            }
+        }
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>٧ صور</title>
+    <style>
+        /* ستايل لجميع الصور لضمان نفس الحجم والوضوح */
+        .image-container {
+            display: flex; /* لعرض الصور كـ Flex items */
+            flex-direction: column; /* لترتيبهم تحت بعض */
+            align-items: center; /* لتوسيط الصور أفقياً في الصفحة */
+            gap: 15px; /* مسافة بين الصور */
+            padding: 20px;
+        }
+
+        .image-container img {
+            width: 500px; /* تحديد عرض ثابت لكل صورة (ممكن تغييره) */
+            height: 400px; /* تحديد ارتفاع ثابت لكل صورة (ممكن تغييره) */
+            object-fit: cover; /* لضمان تغطية الصورة للحجم المحدد بدون تشوه */
+            border: 1px solid #ccc; /* إضافة حدود خفيفة لتمييز الصور */
+            display: block; /* لضمان عدم وجود مسافات غير مرغوبة أسفل الصورة */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>✨ ٧ صور بنفس الحجم وتحت بعض ✨</h1>
+
+    <div class="image-container">
+        <img src="m/image1.jpg" alt="وصف الصورة 1">
+        <img src="m/image2.jpg" alt="وصف الصورة 2">
+        <img src="m/image3.jpg" alt="وصف الصورة 3">
+        <img src="m/image4.jpg" alt="وصف الصورة 4">
+        <img src="m/image5.jpg" alt="وصف الصورة 5">
+        <img src="m/image6.jpg" alt="وصف الصورة 6">
+        <img src="m/image7.jpg" alt="وصف الصورة 7">
+    </div>
+
+</body>
+</html>

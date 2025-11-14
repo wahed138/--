@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>تشغيل الفيديو - منصة 1383</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script>
+    // 🚨 1. Configuration - لازم تحط نفس الإعدادات اللي في index.html
+    const firebaseConfig = {
+      apiKey: "AIzaSyBK6FZF3LW83qaUHBKYTfiVd2Ozrd1Rf2g",
+      authDomain: "thanawy-1383.firebaseapp.com",
+      databaseURL: "https://thanawy-1383-default-rtdb.firebaseio.com",
+      projectId: "thanawy-1383",
+      storageBucket: "thanawy-1383.firebasestorage.app",
+      messagingSenderId: "1026664406457",
+      appId: "1:1026664406457:web:87d71f7e41bef36ba0aa68",
+      measurementId: "G-J5R2EFM2D0"
+    };
+
+    // 🚨 2. عنوان صفحة الدخول اللي هترجع ليها
+    const LOGIN_PAGE_URL = "https://1383ss.vercel.app"; 
+
+    // دالة التوجيه لصفحة الدخول
+    function redirectToLogin(reason) {
+        // بنستخدم replace عشان الصفحة دي متتسجلش في الـ Browser History
+        window.location.replace(LOGIN_PAGE_URL);
+    }
+
+    // *******************************************************************
+
+    const activeCode = localStorage.getItem('activeCode');
+    const localDeviceId = localStorage.getItem('localDeviceId');
+
+    // 3. التحقق المبدئي: لو مفيش كود أو Device ID متسجل محليًا
+    if (!activeCode || !localDeviceId) {
+        redirectToLogin("Missing local code or Device ID.");
+    } else {
+        // 4. التحقق من Firebase
+        
+        if (typeof firebase === 'undefined' || firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        async function verifyCodeOnServer(code) {
+            try {
+                // بنحاول نقرا بيانات الكود ده من الداتا بيز مرة واحدة بس
+                const snapshot = await db.ref('approvedStudents/' + code).once('value');
+                const data = snapshot.val();
+                const now = Date.now();
+
+                // أ. الكود مش موجود
+                if (!data) {
+                    redirectToLogin("Code not found.");
+                    return;
+                }
+
+                // ب. الكود منتهي الصلاحية
+                if (data.expiry <= now) {
+                    redirectToLogin("Code is expired.");
+                    return;
+                }
+                
+                // ج. الكود مُعطّل من الإدارة
+                if (data.isBlocked === true) {
+                    redirectToLogin("Code is blocked.");
+                    return;
+                }
+                
+                // د. الكود مفعل على جهاز تاني
+                const storedDeviceId = data.deviceId;
+                
+                if (!storedDeviceId || storedDeviceId !== localDeviceId) {
+                    // عشان الأمان، بنمسح الداتا المحلية عشان الطالب يرجع يسجل دخول تاني
+                    localStorage.removeItem('activeCode');
+                    localStorage.removeItem('localDeviceId');
+                    redirectToLogin("Code linked to another device.");
+                    return;
+                }
+
+                // لو وصل لحد هنا يبقى: ✅ الكود سليم ومفعل على نفس الجهاز
+                // خلاص، سيبه يكمل ويشوف المحتوى
+
+            } catch (error) {
+                // لو فشل الاتصال بالخادم، الأمان يقتضي إننا نرجعه لصفحة الدخول
+                // عشان منعاً للدخول غير المصرح به لو الـ Server كان واقع
+                redirectToLogin("Verification server error.");
+            }
+        }
+
+        // إبدأ عملية التحقق
+        verifyCodeOnServer(activeCode);
+    }
+</script>
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: radial-gradient(circle at top, #0a0a0a, #000);
+    color: #fff;
+    margin: 0;
+    text-align: center;
+    overflow-x: hidden;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #111;
+    padding: 14px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+  }
+  .title {
+    color: #ffd700;
+    font-weight: 700;
+    font-size: 18px;
+    text-shadow: 0 0 8px #ffd700;
+  }
+  .back {
+    font-size: 22px;
+    cursor: pointer;
+    color: #ffd700;
+    transition: transform 0.3s;
+    user-select: none;
+  }
+  .back:hover { transform: translateX(-5px); }
+
+  #player, iframe {
+    max-width: 950px;
+    width: 100%;
+    height: 60vh;
+    border-radius: 18px;
+    margin: 25px auto;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+    background: #000;
+  }
+
+  .external {
+    background: #111;
+    padding: 35px 10px 50px;
+    border-top: 2px solid #222;
+    box-shadow: 0 -5px 15px rgba(255, 215, 0, 0.05);
+  }
+  .external h2 {
+    color: #ffd700;
+    font-size: 22px;
+    margin-bottom: 25px;
+    text-shadow: 0 0 10px #ffd700;
+    position: relative;
+  }
+  .external h2::after {
+    content: "";
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ffb700);
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
+  }
+
+  .apps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: center;
+  }
+  .app-btn {
+    background: #1b1b1b;
+    border: 1px solid #333;
+    border-radius: 14px;
+    padding: 15px 10px;
+    width: 130px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+  }
+  .app-btn:hover {
+    transform: translateY(-6px);
+    background: linear-gradient(180deg, #222, #111);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  }
+  .app-btn img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 8px;
+  }
+  .app-btn span {
+    display: block;
+    color: #ffd700;
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  #toast {
+    visibility: hidden;
+    min-width: 260px;
+    background: linear-gradient(90deg, #222, #1a1a1a);
+    color: #ffd700;
+    text-align: center;
+    border-radius: 12px;
+    padding: 14px;
+    position: fixed;
+    z-index: 2000;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+    opacity: 0;
+    transition: opacity 0.5s, bottom 0.5s;
+  }
+  #toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 55px;
+  }
+
+  .error-msg {
+    margin: 40px auto;
+    color: #ff4d4d;
+    font-size: 20px;
+    font-weight: 700;
+    text-shadow: 0 0 8px #ff0000;
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="back" onclick="history.back()">⬅</div>
+    <div class="title">𝑷𝒍𝒂𝒚 𝑽𝒊𝒅𝒆𝒐 🎬</div>
+    <div style="width:25px;"></div>
+  </div>
+
+  <video id="player" playsinline controls></video>
+
+  <div class="external">
+    <h2>𝑷𝒍𝒂𝒚 𝑾𝒊𝒕𝒉...</h2>
+    <div class="apps">
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969200.png" alt="VLC Player"><span>VLC Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969215.png" alt="MX Player"><span>MX Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969220.png" alt="PlayIt"><span>PlayIt</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969210.png" alt="KM Player"><span>KM Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube"><span>YouTube</span></div>
+    </div>
+  </div>
+
+  <div id="toast">🚧 سيتم إضافة هذه الميزة قريبًا 🔜</div>
+
+  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+  // 🔹 قراءة البيانات من localStorage
+  let qualitySources = [];
+  let videoTitle = localStorage.getItem("video_title") || "Lecture Video";
+  const savedSources = localStorage.getItem("video_sources");
+
+if (savedSources) {
+  try {
+    const links = JSON.parse(savedSources);
+
+    if (Array.isArray(links)) {
+      // ✅ التعامل مع اللينكات اللي فيها label و url
+      qualitySources = links.map(link => ({
+        src: link.url || link, // لو الكائن فيه url نستخدمه، لو نص نستخدمه مباشرة
+        type: "application/x-mpegURL", // صيغة HLS (m3u8)
+        size: parseInt(link.label) || 720 // الجودة
+      }));
+    } else {
+      qualitySources = [{
+        src: links.url || links,
+        type: "application/x-mpegURL",
+        size: parseInt(links.label) || 720
+      }];
+    }
+
+  } catch (err) {
+    console.error("❌ Error parsing savedSources:", err);
+  }
+} else {
+  document.body.innerHTML = "<div class='error-msg'>لم يتم تحديد رابط الفيديو 😢</div>";
+}
+
+
+  // 🔹 إنشاء مشغل الفيديو Plyr
+  const player = new Plyr('#player', {
+    controls: [
+      'play-large','play','progress','current-time',
+      'mute','volume','settings','fullscreen'
+    ],
+    settings: ['quality','speed','loop']
+  });
+
+ // 🔹 تشغيل الفيديو سواء كان HLS أو MP4
+if (qualitySources.length > 0) {
+  const firstSrc = qualitySources[0].src;
+
+  if (firstSrc.endsWith(".m3u8") && Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(firstSrc);
+    hls.attachMedia(document.getElementById('player'));
+
+    // تحديث الجودة من اللينكات
+    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+      console.log("✅ HLS manifest loaded");
+    });
+  } else {
+    player.source = {
+      type: 'video',
+      title: videoTitle,
+      sources: qualitySources
+    };
+  }
+}
+
+
+  // 🔹 Toast إشعارات التطبيقات
+  function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2500);
+  }
+
+  document.querySelectorAll(".app-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      showToast("🚧 سيتم إضافة هذه الميزة قريبًا 🔜");
+    });
+  });
+</script>
+
+</body>
+</html>
